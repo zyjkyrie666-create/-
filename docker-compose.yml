@@ -1,0 +1,14 @@
+services:
+  ai-agent:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      AGENT_DB_PATH: /data/agent_runs.sqlite3
+      AGENT_LOG_LEVEL: INFO
+      AGENT_USE_OPENAI: "false"
+    volumes:
+      - agent-data:/data
+
+volumes:
+  agent-data:
