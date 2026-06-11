@@ -1,5 +1,7 @@
 # Industrial AI Agent Platform
 
+Love AI, passionate about AI, AI embracing life.
+
 一个面向企业场景的工业化 AI Agent 项目骨架，适合作为 GitHub 展示项目和简历项目。项目重点不是简单聊天，而是围绕企业真实落地需要构建：任务编排、工具治理、权限策略、审计追踪、可观测性、API 服务、CLI 和自动化测试。
 
 ## 项目亮点
