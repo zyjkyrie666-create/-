@@ -1,75 +1,68 @@
-# Industrial AI Agent Platform
+# Campus Study Agent
 
-Love AI, passionate about AI, AI embracing life.
+一个适合大学生使用和展示的 AI Agent 网页项目。
 
-一个面向企业场景的工业化 AI Agent 项目骨架，适合作为 GitHub 展示项目和简历项目。项目重点不是简单聊天，而是围绕企业真实落地需要构建：任务编排、工具治理、权限策略、审计追踪、可观测性、API 服务、CLI 和自动化测试。
+项目目标是帮助学生把课程、作业、考试和 DDL 拆解成可执行的学习计划。当前版本是一个可本地运行的 MVP：不依赖真实大模型，默认使用离线规则 Agent，方便演示、测试和后续接入 OpenAI 或其他模型。
 
-## 项目亮点
+## 核心功能
 
-- **Agent 编排引擎**：将用户任务拆解为计划、工具调用、结果汇总和审计记录。
-- **企业级工具治理**：通过工具注册表统一管理工具能力、风险等级和角色权限。
-- **策略与安全控制**：内置 Policy Engine，拦截高风险动作、越权工具调用和危险指令。
-- **可观测性设计**：每次运行生成 trace、step、latency、policy decision 和 audit event。
-- **可扩展 LLM 适配层**：默认使用可离线演示的规则规划器，可替换为 OpenAI、私有模型或企业网关。
-- **工程化交付**：提供 FastAPI 接口、CLI、Dockerfile、docker-compose、单元测试和架构文档。
-
-## 适合简历的项目描述
-
-> 设计并实现企业级 AI Agent 平台，支持任务编排、工具注册、权限策略、审计追踪和可观测性；采用分层架构解耦 API、Agent Runtime、Tool Registry、Policy Engine 与持久化模块，内置离线可运行的规则规划器，并预留 OpenAI/私有大模型适配层；通过 Docker、自动化测试和结构化日志提升项目可部署性和工程质量。
-
-## 学习说明
-
-- [从 0 到 1 制作思路与 Python 文件顺序说明](docs/development_guide.md)
-- [架构说明](docs/architecture.md)
-- [简历写法](docs/resume.md)
+- 网页输入学习任务。
+- 自动识别课程、作业、考试、DDL 等信息。
+- 生成任务拆解和每日学习安排。
+- 根据时间压力给出 DDL 风险提醒。
+- 保留 Agent 编排、工具调用、策略校验、审计记录和 trace 结构。
 
 ## 快速开始
+
+在项目根目录执行：
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e ".[api,dev]"
-python -m industrial_agent.cli "帮我分析今天的生产告警并生成处理建议"
+uvicorn industrial_agent.api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-如果只想验证核心逻辑，不安装任何第三方依赖也可以运行测试：
+然后打开：
+
+```text
+http://127.0.0.1:8000
+```
+
+## 测试
+
+如果只想验证核心逻辑，可以执行：
 
 ```powershell
 $env:PYTHONPATH = "src"
 python -m unittest discover -s tests
 ```
 
-## 启动 API
+## API 示例
 
 ```powershell
-uvicorn industrial_agent.api.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-示例请求：
-
-```bash
-curl -X POST http://localhost:8000/api/v1/runs \
-  -H "Content-Type: application/json" \
-  -d '{"user_id":"u-1001","role":"operator","query":"查询 TICKET-1001 并评估风险"}'
+curl -X POST http://127.0.0.1:8000/api/v1/runs `
+  -H "Content-Type: application/json" `
+  -d '{"user_id":"student-001","role":"operator","query":"我下周五要交机器学习作业，这周还有高数考试，帮我安排一下。"}'
 ```
 
 ## 目录结构
 
 ```text
 src/industrial_agent/
-  agent/              # Agent 编排、运行状态和工具执行
-  api/                # FastAPI HTTP 接口
-  domain/             # 领域模型、策略、工具契约
-  infrastructure/     # SQLite 仓储、审计日志
-  llm/                # LLM 适配层
+  agent/              # Agent 编排和运行流程
+  api/                # FastAPI 接口和网页版首页
+  domain/             # 领域模型、工具注册、策略规则
+  infrastructure/     # SQLite 持久化和审计
+  llm/                # 规划器适配层
   observability/      # trace/span 记录
-tests/                # 标准库 unittest 测试
-docs/                 # 架构与简历材料
+tests/                # unittest 测试
+docs/                 # 项目文档
 ```
 
 ## 环境变量
 
-复制 `.env.example` 后按需配置：
+可以复制 `.env.example` 后按需配置：
 
 ```text
 OPENAI_API_KEY=
@@ -77,12 +70,4 @@ AGENT_DB_PATH=.data/agent_runs.sqlite3
 AGENT_LOG_LEVEL=INFO
 ```
 
-默认情况下项目使用离线规则规划器，不需要 `OPENAI_API_KEY`。
-
-## 可继续扩展的方向
-
-- 接入真实知识库：Elasticsearch、Milvus、pgvector 或企业内部文档系统。
-- 增加人工审批流：将高风险工具调用进入审批队列。
-- 接入 OpenTelemetry：将 trace 上报到 Jaeger、Tempo 或云厂商 APM。
-- 增加多租户隔离：按 tenant 维度隔离配置、工具权限和数据。
-- 增加评测集：对任务成功率、工具选择准确率和安全拦截率做持续评估。
+默认情况下项目使用离线规则 Agent，不需要配置 `OPENAI_API_KEY`。
