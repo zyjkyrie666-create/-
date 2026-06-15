@@ -87,7 +87,10 @@ class AgentOrchestrator:
         run.touch()
         self._audit(run, "run_finished", {"status": run.status.value})
         if self.repository is not None:
-            self.repository.save(run)
+            try:
+                self.repository.save(run)
+            except Exception as exc:
+                self._audit(run, "repository_save_failed", {"error": str(exc)})
 
     def _audit(self, run: AgentRun, event_type: str, detail: dict) -> None:
         self.audit_sink.record(

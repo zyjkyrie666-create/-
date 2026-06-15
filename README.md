@@ -17,6 +17,12 @@ Love AI, passionate about AI, AI embracing life.
 
 > 设计并实现企业级 AI Agent 平台，支持任务编排、工具注册、权限策略、审计追踪和可观测性；采用分层架构解耦 API、Agent Runtime、Tool Registry、Policy Engine 与持久化模块，内置离线可运行的规则规划器，并预留 OpenAI/私有大模型适配层；通过 Docker、自动化测试和结构化日志提升项目可部署性和工程质量。
 
+## 学习说明
+
+- [从 0 到 1 制作思路与 Python 文件顺序说明](docs/development_guide.md)
+- [架构说明](docs/architecture.md)
+- [简历写法](docs/resume.md)
+
 ## 快速开始
 
 ```powershell

@@ -47,7 +47,7 @@ def build_default_registry() -> ToolRegistry:
     registry.register(
         Tool(
             name="knowledge_search",
-            description="Search internal operations knowledge base.",
+            description="Search campus learning methods and planning tips.",
             risk_level=RiskLevel.LOW,
             allowed_roles=(Role.VIEWER, Role.OPERATOR, Role.ADMIN),
             handler=_knowledge_search,
@@ -55,29 +55,38 @@ def build_default_registry() -> ToolRegistry:
     )
     registry.register(
         Tool(
-            name="ticket_lookup",
-            description="Read production incident ticket information.",
+            name="course_lookup",
+            description="Identify course focus points for a student task.",
             risk_level=RiskLevel.LOW,
             allowed_roles=(Role.OPERATOR, Role.ADMIN),
-            handler=_ticket_lookup,
+            handler=_course_lookup,
         )
     )
     registry.register(
         Tool(
-            name="risk_assessment",
-            description="Assess operational risk from context and tool outputs.",
+            name="study_plan_builder",
+            description="Build a short daily study plan from a student request.",
+            risk_level=RiskLevel.LOW,
+            allowed_roles=(Role.VIEWER, Role.OPERATOR, Role.ADMIN),
+            handler=_study_plan_builder,
+        )
+    )
+    registry.register(
+        Tool(
+            name="deadline_risk_check",
+            description="Check deadline pressure and learning priority.",
             risk_level=RiskLevel.MEDIUM,
             allowed_roles=(Role.OPERATOR, Role.ADMIN),
-            handler=_risk_assessment,
+            handler=_deadline_risk_check,
         )
     )
     registry.register(
         Tool(
-            name="change_freeze_override",
-            description="Override change freeze window for emergency operations.",
+            name="deadline_override",
+            description="Admin-only demo action for skipping normal planning policy.",
             risk_level=RiskLevel.HIGH,
             allowed_roles=(Role.ADMIN,),
-            handler=_change_freeze_override,
+            handler=_deadline_override,
         )
     )
     return registry
@@ -87,42 +96,71 @@ def _knowledge_search(arguments: dict) -> dict:
     query = str(arguments.get("query", ""))
     articles = [
         {
-            "title": "生产告警处理标准流程",
-            "summary": "先确认影响面，再检查最近发布、容量指标和依赖服务状态。",
+            "title": "考试复习三步法",
+            "summary": "先列考点，再做高频题，最后用错题回顾薄弱知识。",
         },
         {
-            "title": "变更窗口治理规范",
-            "summary": "非紧急变更必须在审批窗口内执行，高风险操作需要管理员确认。",
+            "title": "作业拆解方法",
+            "summary": "把作业拆成理解题目、查资料、完成初稿、检查提交四步。",
         },
     ]
     return {"query": query, "matches": articles[:2]}
 
 
-def _ticket_lookup(arguments: dict) -> dict:
-    ticket_id = str(arguments.get("ticket_id") or "TICKET-1001")
+def _course_lookup(arguments: dict) -> dict:
+    course = str(arguments.get("course") or "通用课程")
     return {
-        "ticket_id": ticket_id,
-        "service": "payment-gateway",
-        "severity": "P2",
-        "symptom": "error rate increased after deployment",
-        "owner": "platform-oncall",
+        "course": course,
+        "focus_points": [
+            "先确认老师最近强调的章节和题型。",
+            "优先处理影响成绩占比最高的作业、考试或项目。",
+            "把大任务拆成 30 到 60 分钟可以完成的小块。",
+        ],
     }
 
 
-def _risk_assessment(arguments: dict) -> dict:
+def _study_plan_builder(arguments: dict) -> dict:
+    query = str(arguments.get("query", "")).lower()
+    tasks = ["整理任务要求和截止时间", "拆分学习内容", "安排每天可执行的小任务"]
+    if any(term in query for term in ("考试", "exam", "复习")):
+        tasks.extend(["复习核心概念", "完成一组练习题", "整理错题"])
+    if any(term in query for term in ("作业", "homework", "论文", "报告")):
+        tasks.extend(["完成作业初稿", "检查格式和提交要求"])
+
+    return {
+        "tasks": tasks,
+        "daily_plan": [
+            {"day": "今天", "todo": "明确任务要求，完成最重要的一小块。"},
+            {"day": "明天", "todo": "集中处理难点，至少完成 50% 主体内容。"},
+            {"day": "后天", "todo": "查漏补缺，整理错题或修改作业。"},
+            {"day": "提交前", "todo": "检查格式、文件名、提交入口和截止时间。"},
+        ],
+        "today_focus": "先做最接近 DDL、分值最高、最容易卡住的任务。",
+    }
+
+
+def _deadline_risk_check(arguments: dict) -> dict:
     text = " ".join(str(value) for value in arguments.values()).lower()
-    score = 0.75 if any(term in text for term in ("p1", "p2", "error", "告警")) else 0.35
-    level = "high" if score >= 0.7 else "medium" if score >= 0.4 else "low"
+    urgent_terms = ("今天", "今晚", "明天", "tomorrow")
+    medium_terms = ("后天", "这周", "周五", "下周", "ddl", "deadline", "考试", "作业")
+    if any(term in text for term in urgent_terms):
+        level = "高"
+        recommendation = "先暂停低优先级任务，把今天拆成 2 到 3 个专注时段。"
+    elif any(term in text for term in medium_terms):
+        level = "中"
+        recommendation = "建议每天固定一个学习时段，避免把任务集中到最后一天。"
+    else:
+        level = "低"
+        recommendation = "可以按正常节奏推进，但仍建议每天记录完成情况。"
     return {
-        "risk_score": score,
-        "risk_level": level,
-        "recommendation": "建议先回滚最近变更并保持人工确认。" if level == "high" else "建议继续观察并补充指标。",
+        "pressure_level": level,
+        "recommendation": recommendation,
     }
 
 
-def _change_freeze_override(arguments: dict) -> dict:
+def _deadline_override(arguments: dict) -> dict:
     return {
         "approved": True,
-        "change_id": arguments.get("change_id", "CHG-DEMO"),
-        "message": "Emergency override recorded for audit.",
+        "reason": arguments.get("reason", "demo"),
+        "message": "Override recorded for demo audit.",
     }

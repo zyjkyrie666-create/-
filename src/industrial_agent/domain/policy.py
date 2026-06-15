@@ -13,14 +13,15 @@ class PolicyDecision:
 
 
 class PolicyEngine:
-    """Small but explicit policy layer for enterprise Agent governance."""
+    """Small but explicit policy layer for Agent governance."""
 
     dangerous_terms = (
         "delete database",
         "drop table",
-        "关闭所有告警",
         "删除数据",
-        "绕过审批",
+        "清空数据库",
+        "绕过审核",
+        "强制跳过",
     )
 
     def __init__(self, registry: ToolRegistry) -> None:
