@@ -2,7 +2,7 @@
 
 
 
-项目目标是帮助学生把课程、作业、考试和 DDL 拆解成可执行的学习计划。当前版本是一个可本地运行的 MVP：不依赖真实大模型，默认使用离线规则 Agent，方便演示、测试和后续接入 OpenAI 或其他模型。
+项目目标是帮助学生把课程、作业、考试和 DDL 拆解成可执行的学习计划。当前版本是一个可本地运行的 MVP：不依赖真实大模型，默认使用离线规则 Agent，方便演示、测试和后续接入其他模型。
 
 ## 核心功能
 
@@ -60,14 +60,4 @@ tests/                # unittest 测试
 docs/                 # 项目文档
 ```
 
-## 环境变量
 
-可以复制 `.env.example` 后按需配置：
-
-```text
-OPENAI_API_KEY=
-AGENT_DB_PATH=.data/agent_runs.sqlite3
-AGENT_LOG_LEVEL=INFO
-```
-
-默认情况下项目使用离线规则 Agent，不需要配置 `OPENAI_API_KEY`。
